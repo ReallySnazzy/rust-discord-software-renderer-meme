@@ -337,7 +337,7 @@ fn main() {
     window.limit_update_rate(
         Some(std::time::Duration::from_micros(16000))
     );
-    let monkey: Arc<RwLock<Vec<Triangle<Vector3>>>> = Arc::from(RwLock::new(load_obj("./monkey.obj")));
+    let monkey: Arc<RwLock<Vec<Triangle<Vector3>>>> = Arc::from(RwLock::new(load_obj("./triangles.obj")));
     let mut canvases = vec![];
     for x in 0..(THREADS/2) {
         for y in 0..=1 {
@@ -368,6 +368,24 @@ fn main() {
                 tri.c = tri.c.rotate_y(delta);
                 tri.normal = tri.normal.rotate_y(-delta);
             }
+            monkey.write().unwrap().sort_by(|tri1, tri2| tri2.a.z.partial_cmp(&tri1.a.z).unwrap());
+        }
+        let q_down = window.is_key_down(Key::Q);
+        let e_down = window.is_key_down(Key::E);
+        if q_down || e_down {
+            for tri in &mut *monkey.write().unwrap() {
+                let delta = if e_down && !q_down {
+                    0.05f32
+                } else if !e_down && q_down {
+                    -0.05f32
+                } else {
+                    0f32
+                };
+                tri.a.x += delta;
+                tri.b.x += delta;
+                tri.c.x += delta;
+            }
+            monkey.write().unwrap().sort_by(|tri1, tri2| tri2.a.z.partial_cmp(&tri1.a.z).unwrap());
         }
         for canvas in &canvases {
             let canvas = canvas.clone();
